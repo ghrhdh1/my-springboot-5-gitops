@@ -1,0 +1,57 @@
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: {{ .Values.app.name }}-el
+spec:
+  namespaceSelector: {}
+  resources: {}
+  serviceAccountName: pipeline
+  triggers:
+    - bindings:
+        - kind: TriggerBinding
+          ref: commit-binding
+      interceptors:
+        - params:
+            - name: filter
+              value: has(body.commits) && body.created == false
+            - name: overlays
+              value: null
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: commit-trig
+      template:
+        ref: {{ .Values.app.name }}-run-build
+    - bindings:
+        - kind: TriggerBinding
+          ref: tag-binding-preprod
+      interceptors:
+        - params:
+            - name: filter
+              value: body.ref_type == 'tag' && body.ref.startsWith('v')
+            - name: overlays
+              value: null
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: tag-trig-preprod
+      template:
+        ref: {{ .Values.app.name }}-run-promote
+    - bindings:
+        - kind: TriggerBinding
+          ref: tag-binding-prod
+      interceptors:
+        - params:
+            - name: filter
+              value: body.ref_type == 'tag' && body.ref.startsWith('r')
+            - name: overlays
+              value:
+                - expression: 'body.ref.replace("r","v")'
+                  key: source
+          ref:
+            kind: ClusterInterceptor
+            name: cel
+      name: tag-trig-prod
+      template:
+        ref: {{ .Values.app.name }}-run-promote

@@ -1,0 +1,31 @@
+app:
+  name: my-springboot-5
+  namespace: my-springboot-5-dev
+  cluster: apps.cluster-2tgsr.dynamic.redhatworkshops.io
+
+git:
+  branch: main
+  repo: https://github.com/ghrhdh1/my-springboot-5
+  org: ghrhdh1
+  name: my-springboot-5
+  apiUrl: 'https://api.github.com/' #REPLACE in case of a hosted Git Hub Enterprise (eg. https://my.github.com/api/v3/)
+
+image:
+  registry: Quay
+  host: quay.io
+  organization: rhdh1
+  name: my-springboot-5
+
+maven:
+  mirrorUrl: 'https://repo1.maven.org/maven2/'
+
+vault:
+  #namespace where the ServiceAccount is able to authenticate agains Vault 
+  adminNamespace: 'vault-admin'
+  adminAuthEngineMountName: 'dev-cluster-admin'
+  #Vault admin role associated to the Kubernetes Auth Engine Mount
+  adminRole: 'vault-admin'
+  appAuthEngineMountName: 'dev-cluster'
+  #must match with the 'metadata.name' defined in the QuaySecretEngineConfig CRD
+  githubSecretEngineConfig: 'ghrhdh1' #CHANGE-ME!!!
+  quaySecretEngineConfig: 'rhdh1' #CHANGE-ME!!!

@@ -1,0 +1,20 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ .Values.app.name }}-kv
+  namespace: {{ .Values.vault.adminNamespace }}
+spec:
+  authentication:
+    path: {{ .Values.vault.adminAuthEngineMountName }}
+    role: {{ .Values.vault.adminRole }}
+    serviceAccount:
+      name: default
+  policy: |
+    # read / write from the kv path
+    path "{{ .Values.git.org }}/{{ .Values.app.name }}-kv/*" {
+      capabilities = [ "create", "read", "update", "delete"]
+    }
+    # read the password policy
+    path "sys/policies/password/+/generate" {
+      capabilities = [ "read" ]
+    }

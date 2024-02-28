@@ -1,0 +1,26 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: Policy
+metadata:
+  name: {{ .Values.app.name }}-read-token
+  namespace: {{ .Values.vault.adminNamespace }}
+spec:
+  # Add fields here
+  authentication: 
+    path: {{ .Values.vault.adminAuthEngineMountName }}
+    role: {{ .Values.vault.adminRole }}
+    serviceAccount:
+      name: default
+  policy: |
+    # read tokens
+    path "/github/token/{{ .Values.vault.githubSecretEngineConfig }}" {
+      capabilities = ["read"]
+    }
+    path "/quay/creds/{{ .Values.vault.quaySecretEngineConfig }}" {
+      capabilities = ["read"]
+    }
+    path "/quay/static-creds/{{ .Values.vault.quaySecretEngineConfig }}" {
+      capabilities = ["read"]
+    }
+    path "/kv/secrets/rhdh/registry-plugin" {
+      capabilities = ["read"]
+    }

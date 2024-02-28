@@ -1,0 +1,120 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ .Values.app.name }}-build
+  labels:
+    type: pipeline
+    backstage.io/kubernetes-id: {{ .Values.app.name }}
+spec:
+  params:
+    - name: source-repo
+      description: source repo that contains the application code
+      type: string
+      default: {{ .Values.git.repo }}
+    - name: source-branch
+      description: source branch to build from
+      default: {{ .Values.git.branch }}
+      type: string
+    - name: output-image
+      description: reference of the image that will get created
+      default: {{ include "image.dev-url" . }}
+      type: string
+    - name: maven-mirror-url
+      description: Maven repo manager URL (eg. Sonatype Nexus)
+      default: {{ .Values.maven.mirrorUrl }}
+      type: string
+  tasks:
+    - name: git-clone
+      params:
+        - name: url
+          value: $(params.source-repo)
+        - name: revision
+          value: $(params.source-branch)
+        - name: verbose
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source-folder
+    - name: package-and-test
+      params:
+        # - name: MAVEN_IMAGE
+        #   value: >-
+        #     image-registry.openshift-image-registry.svc:5000/openshift/java:latest
+        - name: GOALS
+          value:
+            - clean
+            - package
+            # - '-DskipTests'
+            - '-e'
+            - '-B'
+            # in case your internal maven repo uses a self-signed cert
+            - '-Dmaven.wagon.http.ssl.insecure=true'
+            - '-Dmaven.wagon.http.ssl.allowall=true'
+            # - '-Dmaven.repo.local=$(workspaces.source.path)/.m2'
+        # - name: CONTEXT_DIR
+        #   value: $(params.clone-subdir)/$(params.app-name)
+        - name: MAVEN_MIRROR_URL
+          value: $(params.maven-mirror-url)
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: ClusterTask
+        name: maven
+      workspaces:
+        - name: source
+          workspace: source-folder
+        - name: maven-settings
+          workspace: maven-settings
+    - name: image-build-push
+      params:
+        - name: IMAGE
+          value: >-
+            $(params.output-image):$(tasks.git-clone.results.commit)
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: DOCKERFILE
+          value: ./src/main/docker/Dockerfile.jvm
+        # - name: CONTEXT
+        #   value: $(params.clone-subdir)
+        - name: TLSVERIFY
+          value: 'false'
+        - name: FORMAT
+          value: oci
+        - name: SKIP_PUSH
+          value: 'false'
+      runAfter:
+        - package-and-test
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: source-folder
+    - name: image-tag
+      params:
+        - name: srcImageURL
+          value: >-
+            docker://$(params.output-image):$(tasks.git-clone.results.commit)
+        - name: destImageURL
+          value: >-
+            docker://$(params.output-image):latest
+        - name: srcTLSverify
+          value: 'false'
+        - name: destTLSverify
+          value: 'false'
+      runAfter:
+        - image-build-push
+      taskRef:
+        kind: ClusterTask
+        name: skopeo-copy
+      workspaces:
+        - name: images-url
+          workspace: image-urls-scm
+  workspaces:
+    - name: source-folder
+    - name: maven-settings
+    - name: image-urls-scm

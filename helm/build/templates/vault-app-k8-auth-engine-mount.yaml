@@ -1,0 +1,13 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: AuthEngineMount
+metadata:
+  name: {{ .Values.app.name }}-kubernetes
+  namespace: {{ .Values.vault.adminNamespace }}
+spec:
+  authentication: 
+    path: {{ .Values.vault.adminAuthEngineMountName }}
+    role: {{ .Values.vault.adminRole }}
+    serviceAccount:
+      name: default
+  type: kubernetes
+  path: {{ .Values.vault.appAuthEngineMountName }}
