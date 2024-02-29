@@ -67,7 +67,15 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
-{{- printf "%s %s/%s/%s:%s" .Values.image.registry .Values.image.host .Values.image.organization .Values.image.name .Values.image.tag -}}
+{{- define "springboot-template2.image" -}}
+{{- printf "%s" .Values.image.registry -}}
+{{- printf "%s" .Values.image.host -}}
+{{- printf "%s" .Values.image.name -}}
+{{- printf "%s" .Values.image.tag -}}
+{{- printf "%s" .Values.image.organization -}}
+{{- end }}
+
+
 {{- define "springboot-template.image" -}}
 {{- if eq .Values.image.registry "Quay" }}
 {{- printf "%s/%s/%s:%s" .Values.image.host .Values.image.organization .Values.image.name .Values.image.tag -}}
