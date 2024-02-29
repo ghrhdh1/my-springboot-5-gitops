@@ -56,14 +56,11 @@ app.kubernetes.io/name: {{ include "springboot-template.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "springboot-template.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "springboot-template.fullname" .) .Values.serviceAccount.name }}
+{{- define "springboot-template.image" -}}
+{{- if eq .Values.image.registry "Quay" }}
+{{- printf "%s/%s/%s:%s" .Values.image.host .Values.image.organization .Values.image.name .Values.image.tag -}}
 {{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- printf "%s/%s/%s:latest" .Values.image.host .Values.namespace.name .Values.image.name -}}
 {{- end }}
 {{- end }}
 
@@ -76,3 +73,17 @@ Create the Route host Url to use
 {{- else }}
 {{- default "" .Values.route.host }}
 {{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "springboot-template.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "springboot-template.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+
+
