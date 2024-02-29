@@ -22,3 +22,28 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "springboot-template.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "backstage.labels" -}}
+backstage.io/kubernetes-id: my-springboot-5
+{{- end }}
+
+{{- define "springboot-template.labels" -}}
+backstage.io/kubernetes-id: my-springboot-5
+helm.sh/chart: {{ include "springboot-template.chart" . }}
+app.openshift.io/runtime: spring-boot
+{{ include "springboot-template.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
