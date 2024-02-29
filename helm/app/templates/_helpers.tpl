@@ -68,7 +68,6 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "springboot-template.image" -}}
-{{- printf "%s" .Values.image.registry -}}
 {{- printf "%s" .Values.image.host -}}
 {{- printf "%s" .Values.image.name -}}
 {{- printf "%s" .Values.image.tag -}}
