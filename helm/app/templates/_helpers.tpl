@@ -67,10 +67,6 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
-{{- define "springboot-template.image" -}}
-{{- printf "%s/%s/%s:%s" .Values.image.host .Values.image.organization .Values.image.name .Values.image.tag }}
-{{- end }}
-
 {{/*
 Create the Route host Url to use
 */}}
