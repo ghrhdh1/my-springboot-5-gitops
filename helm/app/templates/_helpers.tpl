@@ -71,8 +71,5 @@ Create the name of the service account to use
 Create the Route host Url to use
 */}}
 {{- define "springboot-template.routeHostUrl" -}}
-{{- if .Values.environment }}
 {{- printf "%s-%s.apps.cluster-2tgsr.dynamic.redhatworkshops.io" .Values.app.name .Values.environment }}
-{{- else }}
-{{- default "" .Values.route.host }}
 {{- end }} 
